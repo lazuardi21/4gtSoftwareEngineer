@@ -1,0 +1,190 @@
+﻿@model IEnumerable<WebApplication1.Models.ProductionResult>
+
+@{
+    ViewData["Title"] = "Production Plans";
+}
+
+<h2>Production Plans</h2>
+
+<!-- Create Form -->
+<div>
+    <form id="createForm">
+        @Html.AntiForgeryToken()
+        <div class="form-group">
+            <label for="Monday">Monday:</label>
+            <input type="number" class="form-control" id="Monday" name="Monday" required />
+        </div>
+        <div class="form-group">
+            <label for="Tuesday">Tuesday:</label>
+            <input type="number" class="form-control" id="Tuesday" name="Tuesday" required />
+        </div>
+        <!-- Add fields for other days similarly -->
+        <div class="form-group">
+            <label for="Wednesday">Wednesday:</label>
+            <input type="number" class="form-control" id="Wednesday" name="Wednesday" required />
+        </div>
+        <div class="form-group">
+            <label for="Thursday">Thursday:</label>
+            <input type="number" class="form-control" id="Thursday" name="Thursday" required />
+        </div>
+        <div class="form-group">
+            <label for="Friday">Friday:</label>
+            <input type="number" class="form-control" id="Friday" name="Friday" required />
+        </div>
+        <div class="form-group">
+            <label for="Saturday">Saturday:</label>
+            <input type="number" class="form-control" id="Saturday" name="Saturday" required />
+        </div>
+        <div class="form-group">
+            <label for="Sunday">Sunday:</label>
+            <input type="number" class="form-control" id="Sunday" name="Sunday" required />
+        </div>
+        <button type="submit" class="btn btn-primary">Create</button>
+    </form>
+</div>
+
+<hr />
+
+<!-- Production Plans List -->
+<h4>Production Plans</h4>
+<table>
+    <thead>
+        <tr>
+            <th>Monday</th>
+            <th>Tuesday</th>
+            <th>Wednesday</th>
+            <th>Thursday</th>
+            <th>Friday</th>
+            <th>Saturday</th>
+            <th>Sunday</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody id="plansTableBody">
+        @foreach (var plan in Model)
+        {
+            <tr id="plan-@plan.Id">
+                <td>@plan.Monday</td>
+                <td>@plan.Tuesday</td>
+                <td>@plan.Wednesday</td>
+                <td>@plan.Thursday</td>
+                <td>@plan.Friday</td>
+                <td>@plan.Saturday</td>
+                <td>@plan.Sunday</td>
+                <td>
+                    <button type="button" onclick="showDetails(@plan.Id)">Details</button>
+                    <button type="button" onclick="deletePlan(@plan.Id)">Delete</button>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<!-- Details Section -->
+<h4>Plan Details</h4>
+<div id="planDetails"></div>
+
+@section Scripts {
+    <script>
+        // Create Plan
+        document.getElementById('createForm').addEventListener('submit', async function (event) {
+            event.preventDefault();
+
+            const formData = new FormData(event.target);
+            const data = Object.fromEntries(formData.entries());
+
+            try {
+                const response = await fetch('/ProductionExt/Create', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                if (!response.ok) {
+                    const text = await response.text(); // Read response body as text
+                    throw new Error(`Server error: ${text}`);
+                }
+
+                const result = await response.json();
+
+                if (result.success) {
+                    alert('Production plan created successfully!');
+                    appendPlanToTable(result.data); // Add the new plan to the table
+                } else {
+                    throw new Error(result.message || 'Unknown error occurred');
+                }
+            } catch (error) {
+                console.error('Error creating production plan:', error);
+                alert('Error creating production plan: ' + error.message);
+            }
+        });
+
+        function appendPlanToTable(plan) {
+            const tableBody = document.getElementById('plansTableBody');
+            const newRow = document.createElement('tr');
+            newRow.id = `plan-${plan.id}`;
+            newRow.innerHTML = `
+                        <td>${plan.monday}</td>
+                        <td>${plan.tuesday}</td>
+                        <td>${plan.wednesday}</td>
+                        <td>${plan.thursday}</td>
+                        <td>${plan.friday}</td>
+                        <td>${plan.saturday}</td>
+                        <td>${plan.sunday}</td>
+                        <td>
+                            <button type="button" onclick="showDetails(${plan.id})">Details</button>
+                            <button type="button" onclick="deletePlan(${plan.id})">Delete</button>
+                        </td>
+                    `;
+            tableBody.appendChild(newRow);
+        }
+
+        // Delete Plan
+        function deletePlan(id) {
+            fetch(`/ProductionExt/Delete/${id}`, { method: 'DELETE' })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        document.getElementById(`plan-${id}`).remove();
+                    } else {
+                        alert('Failed to delete plan');
+                    }
+                });
+        }
+
+        // Show Details
+        // Show Details
+        function showDetails(id) {
+            fetch(`/ProductionExt/Details/${id}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const planData = data.data;
+                        if (planData) {
+                            const details = `
+                                <p>Monday: ${planData.monday}</p>
+                                <p>Tuesday: ${planData.tuesday}</p>
+                                <p>Wednesday: ${planData.wednesday}</p>
+                                <p>Thursday: ${planData.thursday}</p>
+                                <p>Friday: ${planData.friday}</p>
+                                <p>Saturday: ${planData.saturday}</p>
+                                <p>Sunday: ${planData.sunday}</p>`;
+                            document.getElementById('planDetails').innerHTML = details;
+                        } else {
+                            alert('No data found for this plan');
+                        }
+                    } else {
+                        alert('Failed to fetch details');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching details:', error);
+                    alert('Error fetching details: ' + error.message);
+                });
+        }
+
+    </script>
+}

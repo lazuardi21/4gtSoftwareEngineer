@@ -1,0 +1,57 @@
+﻿@model WebApplication1.Models.ProductionPlan
+@{
+    ViewData["Title"] = "Production Plan";
+}
+
+<h2>Production Plan</h2>
+
+<form asp-action="Index" method="post">
+    <div>
+        <label>Monday</label>
+        <input asp-for="Monday" />
+    </div>
+    <div>
+        <label>Tuesday</label>
+        <input asp-for="Tuesday" />
+    </div>
+    <div>
+        <label>Wednesday</label>
+        <input asp-for="Wednesday" />
+    </div>
+    <div>
+        <label>Thursday</label>
+        <input asp-for="Thursday" />
+    </div>
+    <div>
+        <label>Friday</label>
+        <input asp-for="Friday" />
+    </div>
+    <div>
+        <input type="submit" value="Submit" />
+    </div>
+</form>
+
+@if (ViewBag.Result != null)
+{
+    <h3>Adjusted Production Plan:</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Monday</th>
+                <th>Tuesday</th>
+                <th>Wednesday</th>
+                <th>Thursday</th>
+                <th>Friday</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>@ViewBag.Result[0]</td>
+                <td>@ViewBag.Result[1]</td>
+                <td>@ViewBag.Result[2]</td>
+                <td>@ViewBag.Result[3]</td>
+                <td>@ViewBag.Result[4]</td>
+            </tr>
+        </tbody>
+    </table>
+}
